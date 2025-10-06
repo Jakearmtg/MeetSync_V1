@@ -1,0 +1,5 @@
+{
+  "name": "IA Sincronizadora de Reuniões",
+  "description": "Uma ferramenta com IA para correlacionar transcrições de reuniões com tarefas de projeto e gerar um relatório resumido.",
+  "requestFramePermissions": []
+}
