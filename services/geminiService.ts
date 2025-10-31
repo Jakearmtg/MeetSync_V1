@@ -2,7 +2,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { CorrelationResult } from '../types';
 
 export async function correlateTranscriptWithTasks(transcript: string, tasks: string): Promise<CorrelationResult[]> {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: "AIzaSyDSlZb5Z8NjvyMlGSBzbL0PTY_Soxn6Cgs" });
   const model = "gemini-2.5-flash";
   
   const systemInstruction = `Você é um assistente de reuniões especialista. Sua tarefa é analisar a transcrição de uma reunião e uma lista de tarefas de projeto. Correlacione trechos da conversa da transcrição com as tarefas específicas que estão sendo discutidas.
