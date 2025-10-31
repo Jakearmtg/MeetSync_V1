@@ -3,11 +3,9 @@ import { CorrelationResult } from './types';
 import { correlateTranscriptWithTasks } from './services/geminiService';
 import FileUpload from './components/FileUpload';
 import ResultsTable from './components/ResultsTable';
-import ApiKeyInput from './components/ApiKeyInput';
 import { DownloadIcon, SparklesIcon } from './components/Icons';
 
 const App: React.FC = () => {
-  const [apiKey, setApiKey] = useState<string>('');
   const [transcriptContent, setTranscriptContent] = useState<string>('');
   const [tasksContent, setTasksContent] = useState<string>('');
   const [transcriptFileName, setTranscriptFileName] = useState<string>('');
@@ -17,8 +15,8 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const handleCorrelate = useCallback(async () => {
-    if (!apiKey || !transcriptContent || !tasksContent) {
-      setError('Por favor, insira sua chave de API e carregue ambos os arquivos.');
+    if (!transcriptContent || !tasksContent) {
+      setError('Por favor, carregue ambos os arquivos.');
       return;
     }
     setIsLoading(true);
@@ -26,16 +24,14 @@ const App: React.FC = () => {
     setResults([]);
 
     try {
-      // Analisa o CSV de tarefas para obter os nomes para o prompt e um mapa de URLs
       const lines = tasksContent.split('\n').filter(line => line.trim() !== '');
       const tasksForPromptLines: string[] = [];
       const taskUrlMap = new Map<string, string>();
 
       lines.forEach(line => {
-        // Análise simples de CSV, assumindo que não há vírgulas dentro das colunas
         const columns = line.split(',');
         if (columns.length >= 3) {
-          const taskName = columns[1]?.trim().replace(/^"|"$/g, ''); // Lida com strings entre aspas
+          const taskName = columns[1]?.trim().replace(/^"|"$/g, '');
           const taskUrl = columns[2]?.trim().replace(/^"|"$/g, '');
           if (taskName) {
               tasksForPromptLines.push(taskName);
@@ -53,7 +49,7 @@ const App: React.FC = () => {
       }
 
       const tasksForPrompt = tasksForPromptLines.join('\n');
-      const correlationResults = await correlateTranscriptWithTasks(apiKey, transcriptContent, tasksForPrompt);
+      const correlationResults = await correlateTranscriptWithTasks(transcriptContent, tasksForPrompt);
       
       const finalResults = correlationResults.map(result => ({
         ...result,
@@ -63,15 +59,14 @@ const App: React.FC = () => {
       setResults(finalResults);
     } catch (err) {
       console.error(err);
-      setError('Falha ao processar os arquivos. Verifique se sua chave de API é válida e se o console tem mais detalhes.');
+      setError('Falha ao processar os arquivos. Verifique o console para mais detalhes.');
     } finally {
       setIsLoading(false);
     }
-  }, [apiKey, transcriptContent, tasksContent]);
-
-  const handleExportCsv = () => {
-    if (results.length === 0) return;
-
+  }, [transcriptContent, tasksContent]);
+  
+  const generateCsvContent = () => {
+    if (results.length === 0) return null;
     const headers = '"Nome da Tarefa","Resumo","URL da Tarefa"';
     const rows = results.map(row => {
         const taskName = row.taskName.replace(/"/g, '""');
@@ -79,21 +74,24 @@ const App: React.FC = () => {
         const taskUrl = (row.taskUrl || '').replace(/"/g, '""');
         return `"${taskName}","${summary}","${taskUrl}"`;
     }).join('\n');
+    return `${headers}\n${rows}`;
+  };
 
-    const csvContent = `${headers}\n${rows}`;
+  const handleExportCsv = () => {
+    const csvContent = generateCsvContent();
+    if (!csvContent) return;
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    if (link.href) {
-      URL.revokeObjectURL(link.href);
-    }
     link.href = URL.createObjectURL(blob);
     link.download = 'resumo_reuniao.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   };
   
-  const isButtonDisabled = !apiKey || !transcriptContent || !tasksContent || isLoading;
+  const isButtonDisabled = !transcriptContent || !tasksContent || isLoading;
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 font-sans">
@@ -108,10 +106,6 @@ const App: React.FC = () => {
         </header>
 
         <div className="max-w-4xl mx-auto bg-slate-800/50 rounded-2xl shadow-lg p-6 md:p-8 border border-slate-700">
-          <div className="mb-6">
-            <ApiKeyInput apiKey={apiKey} setApiKey={setApiKey} />
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <FileUpload
               id="transcript-upload"
@@ -172,6 +166,7 @@ const App: React.FC = () => {
               <button
                 onClick={handleExportCsv}
                 className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                aria-label="Exportar resultados como arquivo CSV"
               >
                 <DownloadIcon className="w-5 h-5 mr-2" />
                 Exportar CSV
