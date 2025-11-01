@@ -84,7 +84,7 @@ const App: React.FC = () => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'resumo_reuniao.csv';
+    link.download = 'MeetSync_Resumo.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -98,7 +98,7 @@ const App: React.FC = () => {
       <main className="container mx-auto px-4 py-8">
         <header className="text-center mb-10">
           <h1 className="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-indigo-500">
-            IA Sincronizadora de Reuniões
+            MeetSync
           </h1>
           <p className="mt-4 text-lg text-slate-400">
             Correlacione as transcrições das reuniões com as tarefas do seu projeto instantaneamente.

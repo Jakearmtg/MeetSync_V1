@@ -1,5 +1,5 @@
 {
-  "name": "IA Sincronizadora de Reuniões",
+  "name": "MeetSync",
   "description": "Uma ferramenta com IA para correlacionar transcrições de reuniões com tarefas de projeto e gerar um relatório resumido.",
   "requestFramePermissions": []
 }
